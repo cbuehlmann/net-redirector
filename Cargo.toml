@@ -1,0 +1,6 @@
+[package]
+name = "net-interceptor"
+version = "0.1.0"
+authors = ["Christian Buehlmann <christian.buehlmann@scs.ch>"]
+
+[dependencies]
