@@ -12,10 +12,9 @@ pub fn init_logging(logfile_path: &str) {
 
     if logfile_path.len() > 2 && logger_config_file.exists() {
         match log4rs::init_file(logger_config_file, Default::default()) {
-            Err(e) => println!("Failed to initialize form file {}: {}", logfile_path, e),
-            any =>  println!("Failed to initialize form file {}: {:?}", logfile_path, any),
+            Err(e) => println!("Failed to initialize log4rs with configuration from {}: {}", logfile_path, e),
+            _ => {},
         }
-
     }
     else {
         // dummy logger to console
@@ -23,6 +22,9 @@ pub fn init_logging(logfile_path: &str) {
     }
 }
 
+/**
+ * Initialize a console appender on level Warn
+ */
 fn init_default_logger() {
 
     let stdout = ConsoleAppender::builder().build();
@@ -47,7 +49,11 @@ fn init_default_logger() {
 }
 
 
-// Unittests
+/* Unittests
+ * These tests need to be called one by one, since we cannot reset/uninitialize/clean
+ * the log:: modules internal state.
+ * Use `cargo test [testname]`
+ */
 #[cfg(test)]
 mod tests {
 
@@ -55,25 +61,35 @@ mod tests {
     use logging;
 
     #[test]
-    fn default_logging() {
-        logging::init_logging(".");
-        error!("running in {:?}", current_dir().unwrap().display());
+    fn aa_corrupt_yaml_config() {
+        logging::init_logging("config/log4rs-test-error.yaml");
         error!("fatal");
         warn!("warn");
-        info!("warn");
+        info!("info");
+        debug!("debug");
+        trace!("trace");
     }
 
     #[test]
-    fn yaml_configured_logging() {
-        eprintln!("loggin with configured logger");
+    fn yaml_file_config() {
         // see http://docs.maidsafe.net/crust/master/log4rs/index.html for syntax
         logging::init_logging("config/log4rs-test.yaml");
         error!("running in {:?}", current_dir().unwrap().display());
         error!("fatal");
         warn!("warn");
-        info!("warn");
+        info!("info");
         debug!("debug");
         trace!("trace");
+    }
+
+
+    #[test]
+    fn fallback_config() {
+        logging::init_logging(".");
+        error!("running in {:?}", current_dir().unwrap().display());
+        error!("fatal");
+        warn!("warn");
+        info!("info");
     }
 
 }

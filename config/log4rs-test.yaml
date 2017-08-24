@@ -13,6 +13,11 @@ appenders:
     # deserialization function.
     kind: console
 
+    # reduce level on console
+    filters:
+      -
+        kind: threshold
+        level: warn
 
   testlogfile:
 
@@ -48,7 +53,7 @@ appenders:
 root:
 
   # The maximum log level for the root logger.
-  level: warn
+  level: debug
 
   # The list of appenders attached to the root logger. Defaults to an empty
   # list if not specified.

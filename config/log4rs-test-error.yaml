@@ -1,0 +1,26 @@
+# If set, log4rs will scan the file at the specified rate for changes and
+# automatically reconfigure the logger. The input string is parsed by the
+# humantime crate.
+refresh_rate: 30 seconds
+
+# The "appenders" map contains the set of appenders, indexed by their names.
+appenders:
+
+  console:
+
+    # All appenders must specify a "kind", which will be used to look up the
+    # logic to construct the appender in the `Deserializers` passed to the
+    # deserialization function.
+    kind: console
+
+
+# The root logger is configured by the "root" map. It is optional.
+root:
+
+  # The maximum log level for the root logger.
+  level: trace
+
+  # The list of appenders attached to the root logger. Defaults to an empty
+  # list if not specified.
+  appenders:
+    - console
