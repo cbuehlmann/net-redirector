@@ -1,5 +1,5 @@
 [package]
-name = "net-interceptor"
+name = "net_interceptor"
 version = "0.1.0"
 authors = ["Christian Buehlmann <christian.buehlmann@scs.ch>"]
 description = "The swiss army knife of network interception"

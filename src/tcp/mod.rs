@@ -32,7 +32,7 @@ pub fn forward(bind_ip: &str, local_port: i32, remote_host: &str, remote_port: i
     let bind_sock = bind_addr.parse().unwrap();
     let listener = TcpListener::bind(&bind_sock, &handle)
         .expect(&format!("Unable to bind to {}", &bind_addr));
-    println!("Listening on {}", listener.local_addr().unwrap());
+    debug!("Listening on {}", listener.local_addr().unwrap());
 
     //we have either been provided an IP address or a host name
     //instead of trying to check its format, just trying creating a SocketAddr from it
@@ -48,10 +48,10 @@ pub fn forward(bind_ip: &str, local_port: i32, remote_host: &str, remote_port: i
                     resolved.pick_one()
                         .expect(&format!("No valid IP addresses for target {}", remote_host))
                 })
-                .map_err(|err| println!("{:?}", err))
+                .map_err(|err| warn!("{:?}", err))
         })
         .and_then(|remote_addr| {
-            println!("Resolved {}:{} to {}",
+            debug!("Resolved {}:{} to {}",
                      remote_host,
                      remote_port,
                      remote_addr);
@@ -60,7 +60,7 @@ pub fn forward(bind_ip: &str, local_port: i32, remote_host: &str, remote_port: i
             let handle = handle.clone();
             listener.incoming()
                 .for_each(move |(client, client_addr)| {
-                    println!("New connection from {}", client_addr);
+                    debug!("New connection from {}", client_addr);
 
                     //establish connection to upstream for each incoming client connection
                     let handle = handle.clone();

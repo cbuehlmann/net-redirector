@@ -1,10 +1,12 @@
+extern crate log;
+extern crate log4rs;
+
 use std::path::Path;
 
-use log::LogLevelFilter;
+use self::log::LogLevelFilter;
 
-use log4rs;
-use log4rs::append::console::ConsoleAppender;
-use log4rs::config::{Appender, Config, Root};
+use self::log4rs::append::console::ConsoleAppender;
+use self::log4rs::config::{Appender, Config, Root};
 
 pub fn init_logging(logfile_path: &str) {
 
@@ -48,6 +50,12 @@ fn init_default_logger() {
     log4rs::init_config(config).unwrap();
 }
 
+/**
+ * Initialize log subsystem for unittests
+ */
+pub fn unittestlogger() {
+    init_logging("config/log4rs-test.yaml");
+}
 
 /* Unittests
  * These tests need to be called one by one, since we cannot reset/uninitialize/clean

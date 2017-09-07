@@ -2,8 +2,8 @@
 extern crate log;
 extern crate log4rs;
 
-pub mod tcp;
 mod logging;
+mod tcp;
 
 fn main() {
 	// read logging parameters
