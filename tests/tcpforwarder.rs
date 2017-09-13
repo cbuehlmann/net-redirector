@@ -15,6 +15,8 @@ extern crate net_interceptor;
 use abstract_ns::Resolver;
 use futures::{Future, Map, Stream, Async, Poll};
 use futures::future;
+use futures::sync::oneshot;
+use futures::sync::oneshot::{Sender};
 use ns_dns_tokio::DnsResolver;
 use tokio_core::net::{TcpStream, TcpListener};
 use tokio_core::reactor::{Core, Handle};
@@ -71,6 +73,20 @@ impl Future for AbortCondition {
     }
 
 }
+/*
+#[derive(Clone)]
+pub struct Stopper {
+    signal: futures::sync::oneshot::Sender<i64>,
+}
+
+impl Stopper {
+
+    pub fn stop(&mut self) {
+        self.signal = 1;
+    }
+
+}
+*/
 
 /*impl Copy for Abort {
     fn clone(&self) -> Abort {
@@ -104,6 +120,9 @@ fn test_infra_connect() {
     let mut abort = AbortCondition { condition: false, reactor_handle: futures::task::park() };
 
     let connections = listener.incoming();
+    let (tx, stop) = oneshot::channel();
+
+//    let mut stopper = Stopper { signal: tx };
     let server = connections.for_each(move |(socket, _peer_addr)| {
         warn!("connection received");
         /*let (writer, reader) = socket.framed(LineCodec).split();
@@ -114,9 +133,13 @@ fn test_infra_connect() {
             .then(|_| Ok(()));
         handle.spawn(server);
         */
+//        tx.send(1);
+        tx.send(1).unwrap();
         abort.set();
         Ok(())
     });
+
+    core.handle().spawn(server.map_err(|_|()));
 
     fn abortCondition() -> futures::Poll<(), std::io::Error> {
         warn!("poll");
@@ -136,5 +159,6 @@ fn test_infra_connect() {
 //    core.run(server.select2(timeout)).unwrap();
 //    core.run(abort).unwrap();
     // core.spawn(server);
-    core.run(server.select(abort)).unwrap();
+//    core.run(server.select(abort)).unwrap();
+    core.run(stop).unwrap();
 }
