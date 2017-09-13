@@ -117,11 +117,10 @@ fn test_infra_connect() {
     let addr = listener.local_addr().unwrap();
     assert!(addr.port() == 12000, "should accept {}");
 
-    let mut abort = AbortCondition { condition: false, reactor_handle: futures::task::park() };
+//    let mut abort = AbortCondition { condition: false, reactor_handle: futures::task::park() };
 
     let connections = listener.incoming();
     let (tx, stop) = oneshot::channel();
-
 //    let mut stopper = Stopper { signal: tx };
     let server = connections.for_each(move |(socket, _peer_addr)| {
         warn!("connection received");
@@ -134,8 +133,8 @@ fn test_infra_connect() {
         handle.spawn(server);
         */
 //        tx.send(1);
-        tx.send(1).unwrap();
-        abort.set();
+//        tx.send(1).unwrap();
+//        abort.set();
         Ok(())
     });
 
@@ -161,4 +160,7 @@ fn test_infra_connect() {
     // core.spawn(server);
 //    core.run(server.select(abort)).unwrap();
     core.run(stop).unwrap();
+
+    // dummy
+    tx.send(1);
 }
