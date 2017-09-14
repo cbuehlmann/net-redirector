@@ -12,12 +12,13 @@ extern crate tokio_io;
 // the device under test
 extern crate net_interceptor;
 
-use futures::{Future, Stream};
+use futures::{Future, Stream, IntoFuture};
 use futures::sync::oneshot;
 use futures::sync::oneshot::{Sender};
 use tokio_core::net::{TcpListener};
-use tokio_core::reactor::Core;
+use tokio_core::reactor::{Core, Timeout};
 
+use std::time::Duration;
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 use std::sync::{Arc, Barrier};
 use std::thread;
@@ -69,5 +70,7 @@ fn test_infra_connect() {
     // the map_err is a hack to satisfy connections.for_each above
     handle.spawn(acceptor.map_err(|_|()));
 
-    core.run(signal).unwrap();
+    let timeout = Timeout::new(std::time::Duration::from_secs(5), &handle).into_future().flatten();
+
+    core.run(timeout.select2(signal));//.unwrap();
 }
