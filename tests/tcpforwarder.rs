@@ -25,8 +25,13 @@ use tokio_io::{AsyncRead, io};
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 use std::fmt::{Debug, Display};
 use std::time::{Duration};
+use std::sync::{Arc, Mutex};
+use std::thread;
 
 use std::io::Error;
+use std::ops::Deref;
+use std::ops::DerefMut;
+use std::borrow::BorrowMut;
 
 use net_interceptor::logging::unittestlogger;
 
@@ -73,20 +78,19 @@ impl Future for AbortCondition {
     }
 
 }
-/*
-#[derive(Clone)]
+
 pub struct Stopper {
-    signal: futures::sync::oneshot::Sender<i64>,
+    sender: Sender<i64>,
 }
 
 impl Stopper {
 
     pub fn stop(&mut self) {
-        self.signal = 1;
+        //self.sender.send(1).unwrap();
     }
 
 }
-*/
+
 
 /*impl Copy for Abort {
     fn clone(&self) -> Abort {
@@ -101,6 +105,32 @@ impl Stopper {
     Box::new(futures::future::ok(0));
 }
 */
+fn blank() -> Result<(), std::io::Error> {
+    warn!("blank");
+    Ok(())
+}
+
+fn direct(stopper: & mut Option<Sender<i64>>) -> Result<(), std::io::Error> {
+    warn!("connection received");
+//    let mut s = Box::borrow_mut(stopper);
+    let mut s : Sender<i64> = stopper.unwrap();
+    s.send(1).unwrap();
+    Ok(())
+}
+
+
+fn stopper(sender: Sender<i64>) -> Arc<Mutex> {
+    let counting = Arc::new(Mutex::new(0));
+    thread::spawn(move |sender| {
+        debug!("waiting for end")
+        let mut num = sender.lock().unwrap();
+        debug!("signalling end");
+        sender.send(1).unwrap();
+    });
+    counting
+}
+
+
 #[test]
 fn test_infra_connect() {
     unittestlogger();
@@ -120,25 +150,18 @@ fn test_infra_connect() {
 //    let mut abort = AbortCondition { condition: false, reactor_handle: futures::task::park() };
 
     let connections = listener.incoming();
-    let (tx, stop) = oneshot::channel();
-//    let mut stopper = Stopper { signal: tx };
-    let server = connections.for_each(move |(socket, _peer_addr)| {
-        warn!("connection received");
-        /*let (writer, reader) = socket.framed(LineCodec).split();
-        let service = s.new_service()?;
+    let (tx, signal) = oneshot::channel::<i64>();
 
-        let responses = reader.and_then(move |req| service.call(req));
-        let server = writer.send_all(responses)
-            .then(|_| Ok(()));
-        handle.spawn(server);
-        */
-//        tx.send(1);
-//        tx.send(1).unwrap();
-//        abort.set();
-        Ok(())
-    });
+//    let stopper = Arc::new(tx);
+    let mut boxed = Some(tx);
+    {
 
-    core.handle().spawn(server.map_err(|_|()));
+    //        let copy = Arc::clone(&stopper);
+            //let server = connections.for_each(move |(socket, _peer_addr)| fx(&stopper));
+        let server = connections.for_each(move |(socket, _peer_addr)| direct(& mut boxed));
+        let wait = core.handle().spawn(server.map_err(|_|()));
+
+    }
 
     fn abortCondition() -> futures::Poll<(), std::io::Error> {
         warn!("poll");
@@ -159,8 +182,5 @@ fn test_infra_connect() {
 //    core.run(abort).unwrap();
     // core.spawn(server);
 //    core.run(server.select(abort)).unwrap();
-    core.run(stop).unwrap();
-
-    // dummy
-    tx.send(1);
+    core.run(signal).unwrap();
 }
