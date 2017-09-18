@@ -19,6 +19,19 @@ appenders:
         kind: threshold
         level: warn
 
+    # The remainder of the configuration is passed along to the appender's
+    # builder, and will vary based on the kind of appender.
+    # Appenders will commonly be associated with an encoder.
+    encoder:
+
+      # Like appenders, encoders are identified by their "kind". If no kind
+      # is specified, it will default to "pattern".
+      kind: pattern
+
+      # The remainder of the configuration is passed along to the
+      # encoder's builder, and will vary based on the kind of encoder.
+      pattern: "{d(%Y-%m-%d %H:%M:%S%.3f)} {T} [{t}] {m}{n}"
+
   testlogfile:
 
     kind: file
@@ -39,15 +52,15 @@ appenders:
     # The remainder of the configuration is passed along to the appender's
     # builder, and will vary based on the kind of appender.
     # Appenders will commonly be associated with an encoder.
-#    encoder:
+    encoder:
 
       # Like appenders, encoders are identified by their "kind". If no kind
       # is specified, it will default to "pattern".
-#      kind: pattern
+      kind: pattern
 
       # The remainder of the configuration is passed along to the
       # encoder's builder, and will vary based on the kind of encoder.
-#      pattern: "{d} [{t}] {m}{n}"
+      pattern: "{d(%Y-%m-%d %H:%M:%S%.3f)} {T} [{t}] {m}{n}"
 
 # The root logger is configured by the "root" map. It is optional.
 root:

@@ -1,12 +1,15 @@
-extern crate log;
-extern crate log4rs;
-
 use std::path::Path;
+use std::sync::atomic::{AtomicBool, Ordering};
 
-use self::log::LogLevelFilter;
+use log::LogLevelFilter;
+use log4rs;
+use log4rs::append::console::ConsoleAppender;
+use log4rs::encode::pattern::PatternEncoder;
+use log4rs::config::{Appender, Config, Root};
 
-use self::log4rs::append::console::ConsoleAppender;
-use self::log4rs::config::{Appender, Config, Root};
+lazy_static! {
+    static ref UNITTEST_LOGGING_SUBSYSTEM_INITIALIZED: AtomicBool = <AtomicBool>::new(false);
+}
 
 pub fn init_logging(logfile_path: &str) {
 
@@ -14,7 +17,8 @@ pub fn init_logging(logfile_path: &str) {
 
     if logfile_path.len() > 2 && logger_config_file.exists() {
         match log4rs::init_file(logger_config_file, Default::default()) {
-            Err(e) => println!("Failed to initialize log4rs with configuration from {}: {}", logfile_path, e),
+            // this error message may appear on in the BACKTRACE :-(
+            Err(e) => warn!("attempt to initialize log4rs subsystem with configuration from {}: {}", logfile_path, e),
             _ => {},
         }
     }
@@ -29,22 +33,16 @@ pub fn init_logging(logfile_path: &str) {
  */
 fn init_default_logger() {
 
-    let stdout = ConsoleAppender::builder().build();
-
-//    let requests = FileAppender::builder()
-//        .encoder(Box::new(PatternEncoder::new("{d} - {m}{n}")))
-//        .build("log/requests.log")
-//        .unwrap();
+    let stdout = ConsoleAppender::builder()
+        .encoder(Box::new(PatternEncoder::new("{d(%Y-%m-%d %H:%M:%S%.3f)} {T} [{t}] {m}{n}")))
+        .build();
 
     let config = Config::builder()
-        .appender(Appender::builder().build("stdout", Box::new(stdout)))
-//        .appender(Appender::builder().build("requests", Box::new(requests)))
-//        .logger(Logger::builder().build("app::backend::db", LogLevelFilter::Info))
-//        .logger(Logger::builder()
-//        .appender("requests")
-//        .additive(false)
-//        .build("app::requests", LogLevelFilter::Info))
-        .build(Root::builder().appender("stdout").build(LogLevelFilter::Warn))
+        .appender(Appender::builder()
+            .build("stdout", Box::new(stdout)))
+        .build(Root::builder()
+            .appender("stdout")
+            .build(LogLevelFilter::Warn))
         .unwrap();
 
     log4rs::init_config(config).unwrap();
@@ -54,7 +52,10 @@ fn init_default_logger() {
  * Initialize log subsystem for unittests
  */
 pub fn unittestlogger() {
-    init_logging("config/log4rs-test.yaml");
+    if UNITTEST_LOGGING_SUBSYSTEM_INITIALIZED.load(Ordering::SeqCst) == false {
+        init_logging("config/log4rs-test.yaml");
+        UNITTEST_LOGGING_SUBSYSTEM_INITIALIZED.store(true, Ordering::SeqCst);
+    }
 }
 
 /* Unittests
@@ -70,6 +71,7 @@ mod tests {
 
     #[test]
     fn aa_corrupt_yaml_config() {
+        logging::unittestlogger();
         logging::init_logging("config/log4rs-test-error.yaml");
         error!("fatal");
         warn!("warn");
@@ -80,6 +82,7 @@ mod tests {
 
     #[test]
     fn yaml_file_config() {
+        logging::unittestlogger();
         // see http://docs.maidsafe.net/crust/master/log4rs/index.html for syntax
         logging::init_logging("config/log4rs-test.yaml");
         error!("running in {:?}", current_dir().unwrap().display());

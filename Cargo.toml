@@ -10,6 +10,7 @@ keywords = ["proxy", "tcp", "udp", "networking", "interception"]
 categories = ["command-line-utilities", "network-programming", "proxy"]
 
 [dependencies]
+lazy_static = "0.2"
 log = "0.3"
 log4rs = "0.7"
 futures = "0.1"
