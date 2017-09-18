@@ -19,7 +19,7 @@ use futures::sync::oneshot::{Sender};
 use tokio_core::net::{TcpListener};
 use tokio_core::reactor::{Core, Timeout};
 
-use std::net::{IpAddr, Ipv4Addr, SocketAddr};
+use std::net::{IpAddr, Ipv4Addr, SocketAddr, TcpStream};
 use std::sync::{Arc, Barrier};
 use std::thread;
 
@@ -87,6 +87,12 @@ fn test_infra_connect() {
     let timeout_expired = timeout.and_then(|_| -> Result<i64, std::io::Error> {
         panic!("test timeout expired: test failed!")
     });
+
+    // issue a connect
+    let stream = TcpStream::connect(listen_port).unwrap();
+    drop(stream);
+//    let _ = stream.write(&[1]).unwrap(); // ignore the Result
+//    let _ = stream.read(&mut [0; 128]); // ignore this too
 
     match core.run(timeout_expired.select2(signal)) {
         Err(_) => { panic!("oh no!"); },
