@@ -11,7 +11,7 @@ extern crate tokio_io;
 extern crate net2;
 
 // the device under test
-extern crate net_interceptor;
+extern crate redirect;
 
 use futures::{Future, Stream, IntoFuture};
 use futures::sync::oneshot;
@@ -23,7 +23,7 @@ use std::net::{IpAddr, Ipv4Addr, SocketAddr, TcpStream};
 use std::sync::{Arc, Barrier};
 use std::thread;
 
-use net_interceptor::logging::unittestlogger;
+use redirect::logging::unittestlogger;
 
 // Timeout for reactor based tests in seconds
 const TIMEOUT: u64 = 5;

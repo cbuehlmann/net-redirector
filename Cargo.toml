@@ -1,12 +1,12 @@
 [package]
-name = "net_interceptor"
-version = "0.1.0"
+name = "redirect"
+version = "0.1.1"
 authors = ["Christian Buehlmann <christian.buehlmann@scs.ch>"]
-description = "The swiss army knife of network interception"
-homepage = "https://github.com/cbuehlmann/net-interceptor"
-repository = "https://github.com/cbuehlmann/net-interceptor"
+description = "The swiss army knife of network redirection"
+homepage = "https://github.com/cbuehlmann/redirect"
+repository = "https://github.com/cbuehlmann/redirect"
 readme = "README.md"
-keywords = ["proxy", "tcp", "udp", "networking", "interception"]
+keywords = ["redirect", "proxy", "tcp", "udp", "networking", "interception", "filter"]
 categories = ["command-line-utilities", "network-programming", "proxy"]
 
 [dependencies]
@@ -21,3 +21,8 @@ tokio-core = "0.1"
 tokio-io = "0.1"
 ns-dns-tokio = "0.3"
 abstract-ns = "0.3"
+
+# Hack
+[[bin]]
+name = "redirect"
+doc = false
