@@ -8,6 +8,7 @@ extern crate ns_dns_tokio;
 extern crate rand;
 extern crate tokio_core;
 extern crate tokio_io;
+extern crate net2;
 
 // the device under test
 extern crate net_interceptor;
@@ -49,28 +50,61 @@ fn test_infra_connect() {
     let handle = core.handle();
 
     let bind_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 12000);
-    let listener = TcpListener::bind(&bind_socket_addr, &handle)
-        .expect(&format!("Unable to bind to {}", &bind_socket_addr));
-    warn!("Listening on {}", listener.local_addr().unwrap());
 
+
+//    let socket = std::net::SocketAddr::new(Ipv4Addr::new(127, 0, 0, 1), 12000);
+    let listener = net2::TcpBuilder::new_v4().unwrap()
+        .reuse_address(true).unwrap()
+        .bind(bind_socket_addr).unwrap()
+        // 4 = backlog
+        .listen(4).unwrap();
+
+    // TODO move to from_listener() api
+//    let listener = TcpListener::bind(&bind_socket_addr, &handle)
+//        .expect(&format!("Unable to bind to {}", &bind_socket_addr));
+
+    warn!("Listening on {}", listener.local_addr().unwrap());
     let addr = listener.local_addr().unwrap();
     assert!(addr.port() == 12000, "should accept {}");
 
-    let connections = listener.incoming();
+//    let connections = listener.incoming();
+
+    let sock = TcpListener::from_listener(listener, &bind_socket_addr, &handle).unwrap();
+
     let (tx, signal) = oneshot::channel::<i64>();
     let barrier = stopper(tx);
 
-    let acceptor = connections.for_each(move |(socket, _peer_addr)| {
-        warn!("connection from {}", _peer_addr);
+    let result = sock.incoming().for_each(|(socket, addr)| {
+            //protocol.bind_connection(&handle, socket, addr, AlphaBravo::new(&path));
+        warn!("connection from {}", addr);
         barrier.wait();
         Ok(())
     });
 
+    /*
+    for stream in listener.incoming() {
+        match stream {
+            Ok(stream) => {
+                barrier.wait();
+            }
+            Err(e) => { /* connection failed */ }
+        }
+    }
+    */
+
     // register the acceptor in the reactor core
     // the map_err is a hack to satisfy connections.for_each above
-    handle.spawn(acceptor.map_err(|_|()));
+    //handle.spawn(socket.map_err(|_|()));
 
-    let timeout = Timeout::new(std::time::Duration::from_secs(5), &handle).into_future().flatten();
+    let timeout = Timeout::new(std::time::Duration::from_secs(10), &handle).into_future().flatten();
 
     core.run(timeout.select2(signal));//.unwrap();
+
+    drop(result);
+}
+
+#[test]
+fn test_tow_times() {
+    test_infra_connect();
+    test_infra_connect();
 }
