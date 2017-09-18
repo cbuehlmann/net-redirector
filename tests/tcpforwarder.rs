@@ -34,7 +34,7 @@ fn stopper(oneshot_sender_stream: Sender<i64>) -> Arc<Barrier> {
     let copy_for_thread = barrier.clone();
     // the releaser thread
     let builder = thread::Builder::new()
-        .name("core shutdown barrier thread".into());
+        .name("barrier to signal thread".into());
     builder.spawn(move || {
         debug!("waiting for end");
         copy_for_thread.wait();
@@ -72,7 +72,6 @@ fn test_infra_connect() {
 
     let result = sock.incoming().for_each(move |(socket, addr)| {
         //protocol.bind_connection(&handle, socket, addr, AlphaBravo::new(&path));
-
         warn!("connection from {} in context {}", addr, contextid);
         barrier.wait();
         Ok(())
@@ -85,14 +84,12 @@ fn test_infra_connect() {
     let fut = Timeout::new(std::time::Duration::from_secs(TIMEOUT), &handle).into_future();
     let timeout = fut.flatten();
 
-    let fut2 = timeout.and_then(|_| {
-        assert!(false, "timeout expired waiting for connection in context {}", contextid);
-        Ok(())
+    let timeout_expired = timeout.and_then(|_| -> Result<i64, std::io::Error> {
+        panic!("test timeout expired: test failed!")
     });
 
-    match core.run(fut2.select2(signal)) {
-        Err(e) => { panic!("oh no!") },
-        Result => { },
+    match core.run(timeout_expired.select2(signal)) {
+        Err(_) => { panic!("oh no!"); },
         _ => { },
     };
 
