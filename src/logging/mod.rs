@@ -1,15 +1,10 @@
 use std::path::Path;
-use std::sync::atomic::{AtomicBool, Ordering};
 
 use log::LogLevelFilter;
 use log4rs;
 use log4rs::append::console::ConsoleAppender;
 use log4rs::encode::pattern::PatternEncoder;
 use log4rs::config::{Appender, Config, Root};
-
-lazy_static! {
-    static ref UNITTEST_LOGGING_SUBSYSTEM_INITIALIZED: AtomicBool = <AtomicBool>::new(false);
-}
 
 pub fn init_logging(logfile_path: &str) {
 
@@ -46,6 +41,12 @@ fn init_default_logger() {
         .unwrap();
 
     log4rs::init_config(config).unwrap();
+}
+
+use std::sync::atomic::{AtomicBool, Ordering};
+
+lazy_static! {
+    static ref UNITTEST_LOGGING_SUBSYSTEM_INITIALIZED: AtomicBool = <AtomicBool>::new(false);
 }
 
 /**

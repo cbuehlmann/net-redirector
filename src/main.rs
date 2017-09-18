@@ -1,8 +1,9 @@
 #[macro_use]
-extern crate lazy_static;
-#[macro_use]
 extern crate log;
 extern crate log4rs;
+
+#[macro_use]
+extern crate lazy_static;
 
 mod logging;
 mod tcp;
@@ -15,4 +16,7 @@ fn main() {
 
 	tcp::init();
 
+	if false {
+		logging::unittestlogger();
+	}
 }
