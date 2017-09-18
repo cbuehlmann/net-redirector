@@ -69,12 +69,13 @@ mod tests {
 
     use std::env::current_dir;
     use logging;
+    use std::sync::atomic::{Ordering};
 
     #[test]
     fn aa_corrupt_yaml_config() {
         logging::unittestlogger();
         logging::init_logging("config/log4rs-test-error.yaml");
-        error!("fatal");
+        error!("error");
         warn!("warn");
         info!("info");
         debug!("debug");
@@ -87,7 +88,7 @@ mod tests {
         // see http://docs.maidsafe.net/crust/master/log4rs/index.html for syntax
         logging::init_logging("config/log4rs-test.yaml");
         error!("running in {:?}", current_dir().unwrap().display());
-        error!("fatal");
+        error!("error");
         warn!("warn");
         info!("info");
         debug!("debug");
@@ -97,11 +98,19 @@ mod tests {
 
     #[test]
     fn fallback_config() {
-        logging::init_logging(".");
-        error!("running in {:?}", current_dir().unwrap().display());
-        error!("fatal");
-        warn!("warn");
-        info!("info");
+        if logging::UNITTEST_LOGGING_SUBSYSTEM_INITIALIZED.load(Ordering::SeqCst) == true {
+            warn!("cannot run this thes with an initialized logging subsystem, \
+                run separately using 'cargo test fallback_config'");
+        }
+        else {
+            logging::init_logging(".");
+            error!("running in {:?}", current_dir().unwrap().display());
+            error!("error");
+            warn!("warn");
+            info!("info");
+            debug!("debug");
+            trace!("trace");
+        }
     }
 
 }
