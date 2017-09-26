@@ -7,12 +7,13 @@ extern crate lazy_static;
 
 mod logging;
 mod tcp;
+mod core;
 
 fn main() {
 	// read logging parameters
 	logging::init_logging("config/log4rs.yaml");
 
-	info!("main()");
+	info!("starting process ");
 
 	tcp::init();
 

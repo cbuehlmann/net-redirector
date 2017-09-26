@@ -5,7 +5,6 @@ extern crate ns_dns_tokio;
 extern crate rand;
 extern crate tokio_core;
 extern crate tokio_io;
-extern crate log;
 
 use self::abstract_ns::Resolver;
 use self::futures::{Future, Stream};
