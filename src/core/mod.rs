@@ -6,6 +6,7 @@ extern crate rand;
 extern crate tokio_core;
 extern crate tokio_io;
 extern crate net2;
+//extern crate tcp;
 
 use self::futures::{Future, Stream, IntoFuture};
 use self::futures::sync::oneshot;
@@ -16,6 +17,7 @@ use self::tokio_core::reactor::{Core, Timeout};
 use std::net::{IpAddr, Ipv4Addr, SocketAddr, TcpStream};
 use std::sync::{Arc, Barrier};
 use std::thread;
+use self::futures::Canceled;
 
 use std::io::Error;
 use std::io::ErrorKind;
@@ -62,31 +64,28 @@ impl StoppableCore {
         })
     }
 
-    pub fn run(mut self) {
-        match self.core.run(self.signal) {
-            Err(_) => { panic!("oh no!"); },
-            _ => { },
-        };
+
+    pub fn stop(mut self) {
+        self.barrier.wait();
+    }
+
+    pub fn run(mut self) -> Result<i64, Canceled> {
+        self.core.run(self.signal)
     }
 
     ///
     /// Run the main event pump with a defined timeout
     /// ``` timeout = Duration::from_secs(timeout) ```
     ///
-    pub fn run_timeout(mut self, timeout : Duration) -> Result<(), Error> {
+    pub fn run_timeout(mut self, timeout : Duration) -> Result<i64, Canceled> {
 
         let fut = Timeout::new(timeout, &self.core.handle()).into_future();
         let timeout = fut.flatten();
 
-        let timeout_expired = timeout.and_then(|_| -> Result<i64, Error> {
-            return Err(Error::new(ErrorKind::TimedOut, "timeout expired"));
+        let timeout_expired = timeout.and_then( |_| {
+            self.stop()
         });
 
-        match self.core.run(timeout_expired.select2(self.signal)) {
-            Err(_) => return Err(Error::new(ErrorKind::TimedOut, "error")),
-            _ => { },
-        };
-        Ok(())
+        self.core.run(self.signal)
     }
-
 }
