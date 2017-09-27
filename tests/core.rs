@@ -10,25 +10,26 @@ use redirect::logging::unittestlogger;
 fn test_timeout() {
     unittestlogger();
 
+    warn!("creating the core");
     // this is the main event loop, powered by tokio core
     let core = redirect::core::StoppableCore::new().unwrap();
     let timeout = std::time::Duration::from_millis(5);
 
+    warn!("running the core with timeout {}", 5);
     match core.run_timeout(timeout) {
         Err(_) => assert!(false, "should not fail"),
         Ok(x) => assert_eq!(x, 1, "expecting timeout result"),
     }
 }
 
-//#[test]
+#[test]
 fn test_signal() {
     unittestlogger();
 
     // this is the main event loop, powered by tokio core
     let core = redirect::core::StoppableCore::new().unwrap();
-
-    match core.run() {
-        Err(_) => debug!("everything ok"),
-        Ok(_) => panic!("this should not happend"),
-    }
+    debug!("running the core");
+    core.stop();
+    debug!("stopped the core");
+    core.run().unwrap();
 }

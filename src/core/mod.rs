@@ -25,6 +25,7 @@ use std::time::Duration;
 
 pub struct StoppableCore {
     core: Core,
+    // TOCONSIDER use a lock instead of a barrier?
     barrier: Arc<Barrier>,
     signal: Receiver<i64>,
 }
@@ -64,8 +65,7 @@ impl StoppableCore {
         })
     }
 
-
-    pub fn stop(mut self) {
+    pub fn stop(& self) {
         self.barrier.wait();
     }
 
@@ -82,9 +82,14 @@ impl StoppableCore {
         let fut = Timeout::new(timeout, &self.core.handle()).into_future();
         let timeout = fut.flatten();
 
-        let timeout_expired = timeout.and_then( |_| {
-            self.stop()
+        let barrier = self.barrier.clone();
+        let timeout_expired = timeout.and_then(move |_|-> Result<(), Error> {
+            warn!("timeout expired");
+            barrier.wait();
+            Ok(())
         });
+
+        self.core.handle().spawn(timeout_expired.into_future().map_err(|_|()));
 
         self.core.run(self.signal)
     }
