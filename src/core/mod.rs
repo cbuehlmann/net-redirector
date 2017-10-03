@@ -32,6 +32,7 @@ pub struct StoppableCore {
 
 /// Spans a shutdown thread and let it run into a barrier.
 /// When the barrier is released, this thread will signal 1 on the Sender channel provided.
+/// Shutdown is as complicated, since the oneshot::sender is not clonable / threadsafe ...
 fn install_trigger_thread(oneshot_sender_stream: Sender<i64>) -> Arc<Barrier> {
     // barrier awaits the releaser thread and the signalling one
     let barrier = Arc::new(Barrier::new(2));
