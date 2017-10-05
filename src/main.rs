@@ -9,6 +9,8 @@ mod logging;
 mod tcp;
 mod core;
 
+use core::StoppableCore;
+
 fn main() {
 	// read logging parameters
 	logging::init_logging("config/log4rs.yaml");
@@ -20,4 +22,10 @@ fn main() {
 	if false {
 		logging::unittestlogger();
 	}
+
+	let core = core::StoppableCore::new().unwrap();
+	let timeout = std::time::Duration::from_secs(10);
+	core.run_timeout(timeout).unwrap();
+
+	info!("ending gracefully");
 }

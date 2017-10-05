@@ -12,6 +12,7 @@ use self::futures::future;
 use self::ns_dns_tokio::DnsResolver;
 use self::tokio_core::net::{TcpStream, TcpListener};
 use self::tokio_core::reactor::Core;
+use self::tokio_core::reactor::Handle;
 use self::tokio_io::{AsyncRead, io};
 
 use std::net::{SocketAddr};
@@ -21,10 +22,7 @@ pub fn init() {
     debug!("tcp module loaded");
 }
 
-pub fn forward(bind_ip: &str, local_port: i32, remote_host: &str, remote_port: i32) {
-    //this is the main event loop, powered by tokio core
-    let mut core = Core::new().unwrap();
-    let handle = core.handle();
+pub fn forward(handle: &Handle, bind_ip: &str, local_port: i32, remote_host: &str, remote_port: i32) {
 
     //listen on the specified IP and port
     let bind_addr = format!("{}:{}", bind_ip, local_port);
@@ -107,5 +105,5 @@ pub fn forward(bind_ip: &str, local_port: i32, remote_host: &str, remote_port: i
                 .map_err(|err| warn!("{:?}", err))
         });
 
-    core.run(server).unwrap();
+
 }
