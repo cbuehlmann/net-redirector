@@ -10,17 +10,17 @@ keywords = ["redirect", "proxy", "tcp", "udp", "networking", "interception", "fi
 categories = ["command-line-utilities", "network-programming", "proxy"]
 
 [dependencies]
-lazy_static = "0.2"
-log = "0.3"
-log4rs = "0.7"
 futures = "0.1"
 getopts = "0.2"
-rand = "0.3"
 net2 = "0.2"
 tokio-core = "0.1"
 tokio-io = "0.1"
 ns-dns-tokio = "0.3"
 abstract-ns = "0.3"
+# logging
+lazy_static = "0.2"
+log = "0.3"
+log4rs = "0.7"
 
 # Hack
 [[bin]]

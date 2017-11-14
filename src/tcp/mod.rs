@@ -1,8 +1,6 @@
 extern crate abstract_ns;
 extern crate futures;
-extern crate getopts;
 extern crate ns_dns_tokio;
-extern crate rand;
 extern crate tokio_core;
 extern crate tokio_io;
 
@@ -11,7 +9,6 @@ use self::futures::{Future, Stream};
 use self::futures::future;
 use self::ns_dns_tokio::DnsResolver;
 use self::tokio_core::net::{TcpStream, TcpListener};
-use self::tokio_core::reactor::Core;
 use self::tokio_core::reactor::Handle;
 use self::tokio_io::{AsyncRead, io};
 
@@ -35,7 +32,7 @@ pub fn forward(handle: &Handle, bind_ip: &str, local_port: i32, remote_host: &st
     //instead of trying to check its format, just trying creating a SocketAddr from it
     let parse_result = format!("{}:{}", remote_host, remote_port).parse::<SocketAddr>();
     let server = future::result(parse_result)
-        .or_else(|_| {
+        .or_else(move |_| {
             //it's a hostname; we're going to need to resolve it
             //create an async dns resolver
             let resolver = DnsResolver::system_config(&handle).unwrap();
@@ -47,7 +44,7 @@ pub fn forward(handle: &Handle, bind_ip: &str, local_port: i32, remote_host: &st
                 })
                 .map_err(|err| warn!("{:?}", err))
         })
-        .and_then(|remote_addr| {
+        .and_then(move |remote_addr| {
             debug!("Resolved {}:{} to {}",
                      remote_host,
                      remote_port,
@@ -105,5 +102,6 @@ pub fn forward(handle: &Handle, bind_ip: &str, local_port: i32, remote_host: &st
                 .map_err(|err| warn!("{:?}", err))
         });
 
-
+    // register in core and run
+//    handle.spawn(server.map_err(|_|()));
 }

@@ -1,26 +1,17 @@
-extern crate abstract_ns;
 extern crate futures;
-extern crate getopts;
-extern crate ns_dns_tokio;
-extern crate rand;
 extern crate tokio_core;
 extern crate tokio_io;
-extern crate net2;
-//extern crate tcp;
 
 use self::futures::{Future, Stream, IntoFuture};
 use self::futures::sync::oneshot;
 use self::futures::sync::oneshot::{Sender, Receiver};
-use self::tokio_core::net::{TcpListener};
 use self::tokio_core::reactor::{Core, Timeout};
 
-use std::net::{IpAddr, Ipv4Addr, SocketAddr, TcpStream};
 use std::sync::{Arc, Barrier};
 use std::thread;
 use self::futures::Canceled;
 
 use std::io::Error;
-use std::io::ErrorKind;
 use std::time::Duration;
 
 pub struct StoppableCore {
