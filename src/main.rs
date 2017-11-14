@@ -1,19 +1,18 @@
 // openwrt needs a special allocator since uClibc does not support jemalloc.
 // define openwrt as simple condition
-#![cfg_attr(all(feature = "nightly", target="arm-unknown-linux-gnueabi"), cfg(uClibc = "1"))]
+#![cfg_attr(uclibc, feature(global_allocator))]
+#![cfg_attr(uclibc, feature(allocator_api))]
 
-#![cfg_attr(feature = "uClibc", feature(global_allocator))]
-#![cfg_attr(feature = "uClibc", feature(allocator_api))]
+
+#[cfg(uclibc)]
+use std::heap::System;
+
+#[cfg(uclibc)]
+#[global_allocator]
+static ALLOCATOR: System = System;
 
 #[macro_use]
 extern crate lazy_static;
-
-#[cfg(uClibc)]
-use std::heap::System;
-
-#[cfg(uClibc)]
-#[global_allocator]
-static ALLOCATOR: System = System;
 
 #[macro_use]
 extern crate log;
