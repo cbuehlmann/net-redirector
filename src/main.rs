@@ -1,9 +1,21 @@
+#![feature(global_allocator)]
+#![feature(allocator_api)]
+
 #[macro_use]
 extern crate log;
 extern crate log4rs;
 
 #[macro_use]
 extern crate lazy_static;
+
+//#![feature(alloc_system)]
+//extern crate alloc_system;
+
+
+use std::heap::System;
+
+#[global_allocator]
+static ALLOCATOR: System = System;
 
 mod logging;
 mod tcp;
