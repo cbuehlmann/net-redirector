@@ -5,7 +5,6 @@ extern crate abstract_ns;
 extern crate futures;
 extern crate getopts;
 extern crate ns_dns_tokio;
-extern crate rand;
 extern crate tokio_core;
 extern crate tokio_io;
 extern crate net2;
@@ -72,7 +71,7 @@ fn test_infra_connect() {
 
     let result = sock.incoming().for_each(move |(socket, addr)| {
         //protocol.bind_connection(&handle, socket, addr, AlphaBravo::new(&path));
-        warn!("connection from {} in context {}", addr, contextid);
+        warn!("connection from {} in context {} to {}", addr, contextid, socket.local_addr().unwrap());
         barrier.wait();
         Ok(())
     });
